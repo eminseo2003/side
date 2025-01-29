@@ -27,6 +27,7 @@ struct PriorityBadge: View {
         case .low: return .green
         case .medium: return .yellow
         case .high: return .red
+        case .none: return .black
         }
     }
 }

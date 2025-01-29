@@ -2,99 +2,243 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    // 리스트 페이지로 modelContext 기능이 이동하여 삭제됨
+    @Environment(\.modelContext) private var modelContext
+    @Query private var userLists: [UserList]
+    @State private var newListName: String = ""
     
     // "Add Todo" 모달을 표시할지 여부를 상태로 관리
-    @State private var showingAddTodo = false
+    @State private var showingAddAlarm = false
+    @State private var showingAddList = false
     // 검색창 텍스트를 상태로 관리
     @State private var searchText = ""
     // 우선순위 필터를 상태로 관리 (초기값은 nil로 설정하여 전체 보기)
     @State private var priorityFilter: Priority? = nil
-        
+    @State private var selectedList: TaskList? = nil
+    
+    let columns = [GridItem(.flexible()), GridItem(.flexible())]
+    
+    let iconSize: CGFloat = 30
+    
     var body: some View {
-        // TabView를 사용하여 화면을 탭으로 분리
-        TabView {
-            // 첫 번째 탭: Todo 리스트
-            NavigationStack {
+        NavigationStack {
+            ZStack {
+                //색깔 지정 - gpt 사용
+                Color(UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1.0))
+                    .edgesIgnoringSafeArea(.all)
                 VStack {
-                    // 우선순위 필터 버튼 영역
                     HStack {
-                        // 전체 보기 버튼
-                        Button {
-                            priorityFilter = nil // 우선순위 필터 초기화
-                        } label: {
-                            Text("전체")
-                                .font(.caption)
-                                .padding(4)
-                                .foregroundColor(.white)
-                                .background(.gray)
-                                .clipShape(.rect(cornerRadius: 4))
-                                .overlay {
-                                    if priorityFilter == nil {
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .stroke(.blue, lineWidth: 2) // 선택된 상태 강조
-                                    }
-                                }
-                            
-                        }
-                        // enum 타입에 CaseIterable 프로토콜을 사용하면, 반복문에 allCases 프로퍼티를 사용할 수 있다.
-                        // Priority 열거형의 모든 케이스에 대해 필터 버튼 생성
-                        ForEach(Priority.allCases, id: \.self) { priority in
-                            Button {
-                                priorityFilter = priority // 선택된 우선순위로 필터 설정
-                            } label: {
-                                PriorityBadge(priority: priority) // 우선순위 배지를 표시하는 뷰
-                            }
-                            .overlay {
-                                if priorityFilter == priority {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(.blue, lineWidth: 2) // 선택된 상태 강조
-                                }
-                            }
+                        
+                        Spacer()
+                        Button(action: { showingAddAlarm = true }) {
+                            Text("편집")
+                                .foregroundColor(.blue)
                         }
                     }
-                    // TodoListView 표시 (검색 및 우선순위 필터 포함)
-                    TodoListView(searchText: searchText, priorityFilter: priorityFilter)
-                        .searchable(text: $searchText, prompt: "할 일 검색") // 검색 기능 활성화
-                        .navigationTitle("Todo List") // 네비게이션 타이틀 설정
-                        .toolbar {
-                            // 네비게이션 바의 설정 버튼
-                            ToolbarItem(placement: .navigationBarTrailing) {
-                                NavigationLink {
-                                    CategoryListView() // 카테고리 리스트 화면으로 이동
-                                } label: {
-                                    Image(systemName: "gearshape.fill") // 설정 아이콘
-                                }
+                    Spacer()
+                    
+                    SearchBar(text: $searchText)
+                    
+                    Spacer()
+                    
+                    LazyVGrid(columns: columns, spacing: 15) {
+                        
+                        listButton(title: "오늘", list: .today, icon: TodayIcon(iconSize: iconSize))
+                        listButton(title: "예정", list: .future, icon: Image(systemName: "calendar.circle.fill").foregroundColor(.red))
+                        listButton(title: "전체", list: .full, icon: Image(systemName: "tray.circle.fill").foregroundColor(.black))
+                        listButton(title: "완료됨", list: .complete, icon: Image(systemName: "checkmark.circle.fill").foregroundColor(.black.opacity(0.6)))
+                    }
+                    Spacer()
+                    HStack {
+                        Text("나의 목록")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        Spacer()
+                    }
+                    VStack {
+                        List {
+                            ForEach(userLists, id: \.self) { list in
+                                listRow(title: list.name, count: 0, iconColor: .blue)
                             }
-                            // "Add Todo" 버튼
-                            ToolbarItem {
-                                Button(action: {
-                                    showingAddTodo = true // "Add Todo" 모달 표시
-                                }) {
-                                    Label("Add Item", systemImage: "plus") // 플러스 아이콘
-                                }
-                            }
+                            .onDelete(perform: deleteList)
                         }
+                        .listStyle(.plain)
+                        .background(Color(UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1.0)))
+                        .cornerRadius(12)
+                        
+                        HStack {
+                            TextField("새 목록 이름", text: $newListName)
+                                .textFieldStyle(.roundedBorder)
+                                .padding()
+                            
+                            Button(action: addList) {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.blue)
+                                    .font(.title)
+                            }
+                            .padding(.trailing)
+                        }
+                    }
+                    
+                    Spacer()
+                    HStack {
+                        Button(action: { showingAddAlarm = true }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                Text("새로운 미리 알림")
+                                    .fontWeight(.bold)
+                            }
+                            .foregroundColor(.blue)
+                        }
+                        Spacer()
+                        Button(action: { showingAddList = true }) {
+                            Text("목록 추가")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    
+                    
+                    //                TodoListView(searchText: searchText, priorityFilter: nil)
+                    
+                    
                 }
-            }
-            .tabItem {
-                Label("List", systemImage: "list.bullet") // 첫 번째 탭: 리스트
+                .padding()
             }
             
-            // 두 번째 탭: 캘린더 뷰
-            CalendarView()
-                .tabItem {
-                    Label("Calendar", systemImage: "calendar") // 캘린더 탭
-                }
         }
         // "Add Todo" 모달을 표시
-        .sheet(isPresented: $showingAddTodo) {
-            AddTodoView() // 새로운 Todo를 추가하는 뷰
+        .sheet(isPresented: $showingAddList) {
+            AddListView() // 새로운 Todo를 추가하는 뷰
+        }
+        .sheet(isPresented: $showingAddAlarm) {
+            AddAlarmView() // 새로운 Todo를 추가하는 뷰
+        }
+    }
+    private func listButton(title: String, list: TaskList, icon: some View) -> some View {
+        Button(action: {
+            selectedList = list
+        }) {
+            VStack(alignment: .leading) {
+                HStack {
+                    icon
+                        .font(.system(size: iconSize))
+                    
+                    Spacer()
+                    
+                    Text("0")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.black)
+                }
+                Spacer()
+                Text(title)
+                    .foregroundColor(.gray)
+                    .font(.headline)
+                    .fontWeight(.bold)
+            }
+            
+            .padding()
+            .frame(maxWidth: .infinity, minHeight: 80)
+            .background(Color(.white))
+            .cornerRadius(12)
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { selectedList == list },
+            set: { if !$0 { selectedList = nil } }
+        )) {
+            destinationView(for: list)
+        }
+    }
+    @ViewBuilder
+    private func destinationView(for list: TaskList) -> some View {
+        switch list {
+        case .today:
+            TodayListView()
+        case .future:
+            FutureListView()
+        case .full:
+            FullListView()
+        case .complete:
+            CompleteListView()
+        }
+    }
+    // ✅ 새로운 리스트 추가
+    private func addList() {
+        if !newListName.isEmpty {
+            let newUserList = UserList(name: newListName) // 새 목록 생성
+            modelContext.insert(newUserList) // ✅ SwiftData에 저장
+            newListName = "" // 입력 필드 초기화
+            print("./(newListName) added")
         }
     }
     
+    private func deleteList(at offsets: IndexSet) {
+        for index in offsets {
+            let listToDelete = userLists[index]
+            modelContext.delete(listToDelete) // ✅ SwiftData에서 삭제
+        }
+    }
+    private func listRow(title: String, count: Int, iconColor: Color) -> some View {
+        NavigationLink(destination: Text("\(title) 화면")) {
+            HStack {
+                ZStack {
+                    Image(systemName: "list.bullet.circle.fill")
+                        .foregroundColor(.blue)
+                        .font(.system(size: iconSize, weight: .bold))
+                }
+                
+                Text(title)
+                    .font(.system(size: 18))
+                    .foregroundColor(.black)
+                
+                Spacer()
+                
+                Text("\(count)")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 16))
+                
+            }
+            .listRowBackground(Color.white) // 리스트 배경을 흰색으로 유지
+        }
+    }
 }
 
+struct SearchBar: View {
+    @Binding var text: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.gray)
+            
+            TextField("검색", text: $text)
+                .foregroundColor(.primary)
+            
+            Image(systemName: "mic.fill")
+                .foregroundColor(.gray)
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray5)))
+        
+    }
+}
+struct TodayIcon: View {
+    let iconSize: CGFloat
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.blue)
+                .frame(width: iconSize, height: iconSize)
+            
+            VStack {
+                Text(Date().formatted(.dateTime.day()))
+                    .font(.system(size: iconSize/2, weight: .bold))
+                    .foregroundColor(.white)
+                
+            }
+        }
+    }
+}
 //#Preview {
 //    ContentView()
 //        .modelContainer(PreviewContainer.shared.container)

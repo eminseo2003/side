@@ -8,9 +8,10 @@
 import Foundation
 
 enum Priority: Int, Codable, CaseIterable {
-    case low = 0
-    case medium = 1
-    case high = 2
+    case none = 0
+    case low = 1
+    case medium = 2
+    case high = 3
     
     var title: String {
         switch self {
@@ -20,6 +21,8 @@ enum Priority: Int, Codable, CaseIterable {
             return "중간"
         case .high:
             return "높음"
+        case .none:
+            return "없음"
         }
     }
 }

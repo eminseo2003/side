@@ -25,7 +25,7 @@ struct TodoRowView: View {
                 Text(todo.title)
                     .strikethrough(todo.isCompleted)
                 // 마감일 표시 (마감이 지난 경우 빨간색으로 강조)
-                if let dueDate = todo.dueDate {
+                if let dueDate = todo.date {
                     Text(dueDate, format: Date.FormatStyle(date: .numeric, time: .standard))
                         .font(.caption)
                         .foregroundStyle(dueDate > Date.now ? .gray : .red)
@@ -66,9 +66,9 @@ struct TodoRowView: View {
             // 팝업 내에서 독립적인 네비게이션 스택 추가
             // EditTodoView 안에서 빠진 NavigationStack 을 추가함
             // ( 팝업일 경우 네비게이션 바 제목을 출력하려면, 독립적인 NavigationStack 따로 필요함 )
-            NavigationStack {
-                EditTodoView(todo: todo)
-            }
+//            NavigationStack {
+//                EditTodoView(todo: todo)
+//            }
         }
     }
 }

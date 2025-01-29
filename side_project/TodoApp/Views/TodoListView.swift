@@ -50,35 +50,39 @@ struct TodoListView: View {
     }
     
     var body: some View {
-        List {
-            // 카테고리가 없는 TodoItem 섹션
-            Section("카테고리 없음") {
-                ForEach(filteredTodos(category: nil)) { item in
-                    TodoRowView(todo: item, showCategory: false) // TodoRowView로 각 항목 표시
-                }
-                .onDelete(perform: deleteItems) // 삭제 액션 처리
-            }
-            // 각 카테고리별 TodoItem 섹션 생성
-            ForEach(categories) { category in
-                Section(category.name ?? "-") {
-                    ForEach(filteredTodos(category: category)) { item in
-                        TodoRowView(todo: item, showCategory: false)
-                    }
-                    .onDelete(perform: deleteItems)
-                }
-            }
-        }
-        // TodoNavigation을 사용해 화면 전환 분기 처리
-        // 생성한 enum 값을 이용해서, 분기 처리를 한다.
-        .navigationDestination(for: TodoNavigation.self) { navigation in
-            switch navigation {
-                case .detail(let item):
-                    TodoDetailView(item: item) // 상세보기 화면으로 이동
-                case .edit(let item):
-                    EditTodoView(todo: item) // 편집 화면으로 이동
-            }
-        }
+        Text("Todo List")
     }
+    
+//    var body: some View {
+//        List {
+//            // 카테고리가 없는 TodoItem 섹션
+//            Section("카테고리 없음") {
+//                ForEach(filteredTodos(category: nil)) { item in
+//                    TodoRowView(todo: item, showCategory: false) // TodoRowView로 각 항목 표시
+//                }
+//                .onDelete(perform: deleteItems) // 삭제 액션 처리
+//            }
+//            // 각 카테고리별 TodoItem 섹션 생성
+//            ForEach(categories) { category in
+//                Section(category.name ?? "-") {
+//                    ForEach(filteredTodos(category: category)) { item in
+//                        TodoRowView(todo: item, showCategory: false)
+//                    }
+//                    .onDelete(perform: deleteItems)
+//                }
+//            }
+//        }
+//        // TodoNavigation을 사용해 화면 전환 분기 처리
+//        // 생성한 enum 값을 이용해서, 분기 처리를 한다.
+//        .navigationDestination(for: TodoNavigation.self) { navigation in
+//            switch navigation {
+//                case .detail(let item):
+//                    TodoDetailView(item: item) // 상세보기 화면으로 이동
+//                case .edit(let item):
+//                    EditTodoView(todo: item) // 편집 화면으로 이동
+//            }
+//        }
+//    }
     // TodoItem 삭제 처리
     private func deleteItems(offsets: IndexSet) {
         withAnimation {

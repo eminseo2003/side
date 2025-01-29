@@ -33,6 +33,7 @@ struct TodoAppApp: App {
                 return container
             } catch {
                 // 초기화 실패 시 앱 종료
+                print("Error details: \(error.localizedDescription)")
                 fatalError("Could not create ModelContainer: \(error)")
             }
         }
@@ -41,7 +42,8 @@ struct TodoAppApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView() // 앱의 메인 뷰 설정
+                .modelContainer(sharedModelContainer)
         }
-        .modelContainer(sharedModelContainer) // 공유 ModelContainer를 SwiftUI 환경에 전달
+        //.modelContainer(sharedModelContainer) // 공유 ModelContainer를 SwiftUI 환경에 전달
     }
 }

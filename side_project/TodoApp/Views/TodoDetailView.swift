@@ -36,11 +36,11 @@ struct TodoDetailView: View {
             }
             .navigationTitle(item.title) // 네비게이션 바 제목 설정
             // "Edit Todo" 팝업 설정
-            .sheet(isPresented: $showingEditView) {
-                NavigationStack {
-                    EditTodoView(todo: item) // 팝업 내 수정 화면 표시
-                }
-            }
+//            .sheet(isPresented: $showingEditView) {
+//                NavigationStack {
+//                    EditTodoView(todo: item) // 팝업 내 수정 화면 표시
+//                }
+//            }
     }
 }
 
