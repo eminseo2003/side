@@ -10,7 +10,7 @@ struct AddAlarmView: View {
     @Environment(\.dismiss) private var dismiss
     
     // SwiftData에서 카테고리를 쿼리
-    @Query private var categories: [Category]
+    //@Query private var categories: [Category]
     
     // 새로운 Todo 항목의 제목, 우선순위, 마감일 등을 관리할 상태 변수
     @State private var title: String = ""
@@ -35,6 +35,16 @@ struct AddAlarmView: View {
     @State private var showingDetail = false
     @State private var showingListView = false
     
+    let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
+    let colorMap: [String: Color] = [
+        "red": .red,
+        "orange": .orange,
+        "yellow": .yellow,
+        "green": .green,
+        "blue": .blue,
+        "purple": .purple,
+        "brown": .brown
+    ]
     
     var body: some View {
         NavigationStack {
@@ -102,13 +112,14 @@ struct AddAlarmView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("추가") {
                         let todo = TodoItem(title: title,
+                                            memo: memo,
                                             priority: priority,
                                             date: dateEnabled ? date : nil,
                                             time: timeEnabled ? time : nil,
                                             daterepeat: daterepeat,
                                             location: locationEnabled ? location : nil,
-                                            userlist: userlist,
-                                            category: selectedCategory
+                                            userlist: userlist
+                                            //category: selectedCategory
                         )
                         modelContext.insert(todo) // 모델 컨텍스트에 항목 삽입
                         // 뷰 닫기와 동시에 모델 컨텍스트 저장이 호출된다.

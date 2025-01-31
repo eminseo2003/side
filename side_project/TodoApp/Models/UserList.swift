@@ -9,6 +9,8 @@ final class UserList {
     @Relationship(inverse: \TodoItem.userlist)
     var todos: [TodoItem]?
     
+    
+    
     init(name: String, color: String = "blue") {
         self.id = UUID()
         self.name = name

@@ -18,7 +18,7 @@ struct ContentView: View {
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
     
     let iconSize: CGFloat = 30
-    
+
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
     let colorMap: [String: Color] = [
         "red": .red,
@@ -70,7 +70,7 @@ struct ContentView: View {
                             ForEach(userLists, id: \.self) { list in
                                 listRow(
                                     title: list.name,
-                                    count: 0,
+                                    count: list.todos?.count ?? 0,
                                     iconColor: colorMap[list.color] ?? .blue
                                 )
                             }
@@ -90,6 +90,7 @@ struct ContentView: View {
                                 Image(systemName: "plus.circle.fill")
                                 Text("새로운 미리 알림")
                                     .fontWeight(.bold)
+                                    .font(.headline)
                             }
                             .foregroundColor(.blue)
                         }
@@ -97,8 +98,10 @@ struct ContentView: View {
                         Button(action: { showingAddList = true }) {
                             Text("목록 추가")
                                 .foregroundColor(.blue)
+                                .font(.headline)
                         }
                     }
+                    .padding(.vertical)
                     
                     
                     //                TodoListView(searchText: searchText, priorityFilter: nil)
@@ -175,7 +178,7 @@ struct ContentView: View {
         }
     }
     private func listRow(title: String, count: Int, iconColor: Color) -> some View {
-        NavigationLink(destination: Text("\(title) 화면")) {
+        NavigationLink(destination: ListDetailView(title: title)) {
             HStack {
                 ZStack {
                     Image(systemName: "list.bullet.circle.fill")

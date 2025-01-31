@@ -28,12 +28,13 @@ enum SchemaV2: VersionedSchema {
         var daterepeat: RepeatFrequency = RepeatFrequency.none
         var repeatEndDate: Date?
         var location: String?
-        var category: Category? = nil
+        //var category: Category? = nil
         var createdAt: Date = Date()
         var priority: Priority = Priority.none
         var userlist: UserList?
 
         init(title: String,
+             memo: String,
              isCompleted: Bool = false,
              priority: Priority = Priority.none,
              date: Date? = nil,
@@ -42,9 +43,10 @@ enum SchemaV2: VersionedSchema {
              repeatEndDate: Date? = nil,
              location: String? = nil,
              userlist: UserList? = nil,
-             category: Category? = nil,
+             //category: Category? = nil,
              createdAt: Date = Date()) {
             self.title = title
+            self.memo = memo
             self.isCompleted = isCompleted
             self.priority = priority
             self.date = date
@@ -52,7 +54,7 @@ enum SchemaV2: VersionedSchema {
             self.daterepeat = daterepeat
             self.repeatEndDate = repeatEndDate
             self.location = location
-            self.category = category
+            //self.category = category
             self.userlist = userlist
             self.createdAt = createdAt
         }

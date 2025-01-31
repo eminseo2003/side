@@ -6,6 +6,17 @@ struct SlectListView: View {
     @Binding var userlist: UserList?
     @Query private var userLists: [UserList]
     
+    let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
+    let colorMap: [String: Color] = [
+        "red": .red,
+        "orange": .orange,
+        "yellow": .yellow,
+        "green": .green,
+        "blue": .blue,
+        "purple": .purple,
+        "brown": .brown
+    ]
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -15,7 +26,12 @@ struct SlectListView: View {
                             userlist = list  // 선택된 UserList 업데이트
                             dismiss() // 화면 닫기
                         }) {
-                            listRow(title: list.name, count: 0, iconColor: .blue, isSelected: userlist == list)
+                            listRow(
+                                title: list.name,
+                                count: list.todos?.count ?? 0,
+                                iconColor: colorMap[list.color] ?? .blue,
+                                isSelected: userlist == list
+                            )
                         }
                     }
                 }
