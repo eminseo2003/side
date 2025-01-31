@@ -19,6 +19,17 @@ struct ContentView: View {
     
     let iconSize: CGFloat = 30
     
+    let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
+    let colorMap: [String: Color] = [
+        "red": .red,
+        "orange": .orange,
+        "yellow": .yellow,
+        "green": .green,
+        "blue": .blue,
+        "purple": .purple,
+        "brown": .brown
+    ]
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -57,7 +68,11 @@ struct ContentView: View {
                     VStack {
                         List {
                             ForEach(userLists, id: \.self) { list in
-                                listRow(title: list.name, count: 0, iconColor: .blue)
+                                listRow(
+                                    title: list.name,
+                                    count: 0,
+                                    iconColor: colorMap[list.color] ?? .blue
+                                )
                             }
                             .onDelete(perform: deleteList)
                         }
@@ -65,18 +80,7 @@ struct ContentView: View {
                         .background(Color(UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1.0)))
                         .cornerRadius(12)
                         
-                        HStack {
-                            TextField("새 목록 이름", text: $newListName)
-                                .textFieldStyle(.roundedBorder)
-                                .padding()
-                            
-                            Button(action: addList) {
-                                Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(.blue)
-                                    .font(.title)
-                            }
-                            .padding(.trailing)
-                        }
+                        
                     }
                     
                     Spacer()
@@ -162,19 +166,12 @@ struct ContentView: View {
         }
     }
     // ✅ 새로운 리스트 추가
-    private func addList() {
-        if !newListName.isEmpty {
-            let newUserList = UserList(name: newListName) // 새 목록 생성
-            modelContext.insert(newUserList) // ✅ SwiftData에 저장
-            newListName = "" // 입력 필드 초기화
-            print("./(newListName) added")
-        }
-    }
+    
     
     private func deleteList(at offsets: IndexSet) {
         for index in offsets {
             let listToDelete = userLists[index]
-            modelContext.delete(listToDelete) // ✅ SwiftData에서 삭제
+            modelContext.delete(listToDelete)
         }
     }
     private func listRow(title: String, count: Int, iconColor: Color) -> some View {
@@ -182,7 +179,7 @@ struct ContentView: View {
             HStack {
                 ZStack {
                     Image(systemName: "list.bullet.circle.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(iconColor)
                         .font(.system(size: iconSize, weight: .bold))
                 }
                 
