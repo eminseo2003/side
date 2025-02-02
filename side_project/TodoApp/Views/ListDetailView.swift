@@ -23,6 +23,12 @@ struct ListDetailView: View {
         "purple": .purple,
         "brown": .brown
     ]
+    @State private var editableTitle: String // ✅ 수정 가능한 제목
+
+        init(title: String) {
+            self.title = title
+            _editableTitle = State(initialValue: title) // ✅ editableTitle 초기화
+        }
     
     // ✅ title을 이용하여 해당 리스트의 todos를 가져오기
     private var todos: [TodoItem] {
@@ -34,6 +40,7 @@ struct ListDetailView: View {
         }
         return .blue
     }
+    @State private var selectedColorString: String = "blue"
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -201,8 +208,15 @@ struct ListDetailView: View {
             AddAlarmView()
         }
         .sheet(isPresented: $showingListInfo) {
-            //ListInfoView()
+            ListInfoView(
+                selectedColorString: $selectedColorString,
+                listName: $editableTitle
+            )
         }
+        .onAppear {
+                    selectedColorString = userLists.first(where: { $0.name == title })?.color ?? "blue"
+                }
+        
     }
     private func toggleCompletion(for todo: TodoItem) {
             if let index = todos.firstIndex(where: { $0.id == todo.id }) {
