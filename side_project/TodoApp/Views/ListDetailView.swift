@@ -197,13 +197,13 @@ struct ListDetailView: View {
                     }
                     
                     Button(action: {
-                        // 프린트 기능 추가
+                        // 프린트 기능
                     }) {
                         Label("프린트", systemImage: "printer")
                     }
                     
                     Button(action: {
-                        // 목록 삭제 기능 추가
+                        deleteList()
                     }) {
                         Label("목록 삭제", systemImage: "trash")
                             .foregroundColor(.red)
@@ -230,27 +230,27 @@ struct ListDetailView: View {
         .onAppear {
             selectedColorString = userLists.first(where: { $0.name == title })?.color ?? "blue"
         }
-
+        
         
     }
     private func toggleCompletion(for todo: TodoItem) {
         if let index = todos.firstIndex(where: { $0.id == todo.id }) {
             todos[index].isCompleted.toggle()
             
-//            if todos[index].isCompleted {
-//                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-//                    withAnimation {
-//                        deleteTodo(todo)
-//                    }
-//                }
-//            }
+            //            if todos[index].isCompleted {
+            //                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            //                    withAnimation {
+            //                        deleteTodo(todo)
+            //                    }
+            //                }
+            //            }
         }
     }
-//    private func deleteTodo(_ todo: TodoItem) {
-//        if let index = todos.firstIndex(where: { $0.id == todo.id }) {
-//            modelContext.delete(todos[index])
-//        }
-//    }
+    //    private func deleteTodo(_ todo: TodoItem) {
+    //        if let index = todos.firstIndex(where: { $0.id == todo.id }) {
+    //            modelContext.delete(todos[index])
+    //        }
+    //    }
     private func titleText(_ todo: TodoItem) -> Text {
         if todo.isCompleted {
             return Text(todo.title).foregroundColor(.black.opacity(0.5))
@@ -285,17 +285,24 @@ struct ListDetailView: View {
         return formatter.string(from: date)
     }
     private func sortedTodos(_ todos: [TodoItem]) -> [TodoItem] {
-            switch selectedSortOption {
-            case .manual:
-                return todos
-            case .dueDate:
-                return todos.sorted { ($0.date ?? Date.distantFuture) < ($1.date ?? Date.distantFuture) }
-            case .createdDate:
-                return todos.sorted { $0.createdAt < $1.createdAt }
-            case .priority:
-                return todos.sorted { $0.priority.rawValue > $1.priority.rawValue }
-            case .title:
-                return todos.sorted { $0.title < $1.title }
-            }
+        switch selectedSortOption {
+        case .manual:
+            return todos
+        case .dueDate:
+            return todos.sorted { ($0.date ?? Date.distantFuture) < ($1.date ?? Date.distantFuture) }
+        case .createdDate:
+            return todos.sorted { $0.createdAt < $1.createdAt }
+        case .priority:
+            return todos.sorted { $0.priority.rawValue > $1.priority.rawValue }
+        case .title:
+            return todos.sorted { $0.title < $1.title }
         }
+    }
+    private func deleteList() {
+        if let list = userLists.first(where: { $0.name == title }) {
+            modelContext.delete(list)
+            dismiss()
+        }
+    }
+    
 }
