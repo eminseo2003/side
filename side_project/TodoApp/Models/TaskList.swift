@@ -1,10 +1,3 @@
-//
-//  Priority.swift
-//  TodoApp
-//
-//  Created by Jungman Bae on 1/21/25.
-//
-
 import Foundation
 
 enum TaskList: Int, Codable, CaseIterable, Hashable {

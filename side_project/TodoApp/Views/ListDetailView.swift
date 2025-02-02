@@ -24,15 +24,16 @@ struct ListDetailView: View {
         "brown": .brown
     ]
     @State private var editableTitle: String // ✅ 수정 가능한 제목
-
-        init(title: String) {
-            self.title = title
-            _editableTitle = State(initialValue: title) // ✅ editableTitle 초기화
-        }
+    
+    init(title: String) {
+        self.title = title
+        _editableTitle = State(initialValue: title) // ✅ editableTitle 초기화
+    }
     
     // ✅ title을 이용하여 해당 리스트의 todos를 가져오기
     private var todos: [TodoItem] {
-        userLists.first(where: { $0.name == title })?.todos ?? []
+        let items = userLists.first(where: { $0.name == title })?.todos ?? []
+        return sortedTodos(items)
     }
     private var listColor: Color {
         if let colorString = userLists.first(where: { $0.name == title })?.color {
@@ -41,6 +42,7 @@ struct ListDetailView: View {
         return .blue
     }
     @State private var selectedColorString: String = "blue"
+    @State private var selectedSortOption: SortOption = .manual  // ✅ 정렬 옵션 추가
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -65,7 +67,7 @@ struct ListDetailView: View {
                                     toggleCompletion(for: todo)
                                     
                                 }
-                                
+                            
                             VStack(alignment: .leading) {
                                 HStack {
                                     priorityText(todo.priority)
@@ -169,11 +171,22 @@ struct ListDetailView: View {
                     }
                     
                     Menu {
-                        Button(action: { /* 수동 정렬 */ }) {
-                            Text("수동")
+                        ForEach(SortOption.allCases, id: \.self) { option in
+                            Button(action: {
+                                selectedSortOption = option
+                            }) {
+                                Label(option.rawValue, systemImage: selectedSortOption == option ? "checkmark" : "")
+                            }
                         }
                     } label: {
-                        Label("다음으로 정렬", systemImage: "arrow.up.arrow.down")
+                        VStack(alignment: .leading, spacing: 2) {
+                            Label("다음으로 정렬", systemImage: "arrow.up.arrow.down")
+                            Text(selectedSortOption.rawValue)
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            
+                        }
+                        
                     }
                     
                     Button(action: {
@@ -214,28 +227,29 @@ struct ListDetailView: View {
             )
         }
         .onAppear {
-                    selectedColorString = userLists.first(where: { $0.name == title })?.color ?? "blue"
-                }
+            selectedColorString = userLists.first(where: { $0.name == title })?.color ?? "blue"
+        }
+
         
     }
     private func toggleCompletion(for todo: TodoItem) {
-            if let index = todos.firstIndex(where: { $0.id == todo.id }) {
-                todos[index].isCompleted.toggle()
-                
-                if todos[index].isCompleted {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation {
-                            deleteTodo(todo)
-                        }
+        if let index = todos.firstIndex(where: { $0.id == todo.id }) {
+            todos[index].isCompleted.toggle()
+            
+            if todos[index].isCompleted {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    withAnimation {
+                        deleteTodo(todo)
                     }
                 }
             }
         }
+    }
     private func deleteTodo(_ todo: TodoItem) {
-            if let index = todos.firstIndex(where: { $0.id == todo.id }) {
-                modelContext.delete(todos[index])
-            }
+        if let index = todos.firstIndex(where: { $0.id == todo.id }) {
+            modelContext.delete(todos[index])
         }
+    }
     private func titleText(_ todo: TodoItem) -> Text {
         if todo.isCompleted {
             return Text(todo.title).foregroundColor(.black.opacity(0.5))
@@ -256,7 +270,7 @@ struct ListDetailView: View {
             EmptyView()
         }
     }
-
+    
     func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
@@ -269,4 +283,18 @@ struct ListDetailView: View {
         formatter.dateFormat = "a h:mm "
         return formatter.string(from: date)
     }
+    private func sortedTodos(_ todos: [TodoItem]) -> [TodoItem] {
+            switch selectedSortOption {
+            case .manual:
+                return todos
+            case .dueDate:
+                return todos.sorted { ($0.date ?? Date.distantFuture) < ($1.date ?? Date.distantFuture) }
+            case .createdDate:
+                return todos.sorted { $0.createdAt < $1.createdAt }
+            case .priority:
+                return todos.sorted { $0.priority.rawValue > $1.priority.rawValue }
+            case .title:
+                return todos.sorted { $0.title < $1.title }
+            }
+        }
 }
