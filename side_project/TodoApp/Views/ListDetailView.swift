@@ -33,7 +33,8 @@ struct ListDetailView: View {
     // ✅ title을 이용하여 해당 리스트의 todos를 가져오기
     private var todos: [TodoItem] {
         let items = userLists.first(where: { $0.name == title })?.todos ?? []
-        return sortedTodos(items)
+        let filteredItems = showCompletedItems ? items : items.filter { !$0.isCompleted }
+        return sortedTodos(filteredItems)
     }
     private var listColor: Color {
         if let colorString = userLists.first(where: { $0.name == title })?.color {
@@ -192,7 +193,7 @@ struct ListDetailView: View {
                     Button(action: {
                         showCompletedItems.toggle()
                     }) {
-                        Label("완료된 항목 보기", systemImage: "eye")
+                        Label(showCompletedItems ? "완료된 항목 숨기기" : "완료된 항목 보기", systemImage: "eye")
                     }
                     
                     Button(action: {
@@ -236,20 +237,20 @@ struct ListDetailView: View {
         if let index = todos.firstIndex(where: { $0.id == todo.id }) {
             todos[index].isCompleted.toggle()
             
-            if todos[index].isCompleted {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    withAnimation {
-                        deleteTodo(todo)
-                    }
-                }
-            }
+//            if todos[index].isCompleted {
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+//                    withAnimation {
+//                        deleteTodo(todo)
+//                    }
+//                }
+//            }
         }
     }
-    private func deleteTodo(_ todo: TodoItem) {
-        if let index = todos.firstIndex(where: { $0.id == todo.id }) {
-            modelContext.delete(todos[index])
-        }
-    }
+//    private func deleteTodo(_ todo: TodoItem) {
+//        if let index = todos.firstIndex(where: { $0.id == todo.id }) {
+//            modelContext.delete(todos[index])
+//        }
+//    }
     private func titleText(_ todo: TodoItem) -> Text {
         if todo.isCompleted {
             return Text(todo.title).foregroundColor(.black.opacity(0.5))

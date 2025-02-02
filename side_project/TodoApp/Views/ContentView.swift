@@ -70,7 +70,7 @@ struct ContentView: View {
                             ForEach(userLists, id: \.self) { list in
                                 listRow(
                                     title: list.name,
-                                    count: list.todos?.count ?? 0,
+                                    count: list.todos?.filter { !$0.isCompleted }.count ?? 0,
                                     iconColor: colorMap[list.color] ?? .blue
                                 )
                             }
