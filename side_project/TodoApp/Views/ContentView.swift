@@ -18,7 +18,7 @@ struct ContentView: View {
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
     
     let iconSize: CGFloat = 30
-
+    
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
     let colorMap: [String: Color] = [
         "red": .red,
@@ -110,6 +110,9 @@ struct ContentView: View {
                 }
                 .padding()
             }
+            .navigationDestination(for: TaskList.self) { list in
+                destinationView(for: list)
+            }
             
         }
         // "Add Todo" 모달을 표시
@@ -119,11 +122,12 @@ struct ContentView: View {
         .sheet(isPresented: $showingAddAlarm) {
             AddAlarmView() // 새로운 Todo를 추가하는 뷰
         }
+        
     }
     private func listButton(title: String, list: TaskList, icon: some View) -> some View {
-        Button(action: {
-            selectedList = list
-        }) {
+        let count = countForTaskList(list) // ✅ 목록에 해당하는 할 일 개수 계산
+        
+        return NavigationLink(value: list) { // ✅ 새로운 NavigationLink 문법 적용
             VStack(alignment: .leading) {
                 HStack {
                     icon
@@ -131,7 +135,7 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    Text("0")
+                    Text("\(count)")  // ✅ 동적으로 계산된 개수 표시
                         .font(.title)
                         .fontWeight(.bold)
                         .foregroundStyle(.black)
@@ -142,19 +146,14 @@ struct ContentView: View {
                     .font(.headline)
                     .fontWeight(.bold)
             }
-            
             .padding()
             .frame(maxWidth: .infinity, minHeight: 80)
             .background(Color(.white))
             .cornerRadius(12)
         }
-        .navigationDestination(isPresented: Binding(
-            get: { selectedList == list },
-            set: { if !$0 { selectedList = nil } }
-        )) {
-            destinationView(for: list)
-        }
     }
+    
+    
     @ViewBuilder
     private func destinationView(for list: TaskList) -> some View {
         switch list {
@@ -170,6 +169,20 @@ struct ContentView: View {
     }
     // ✅ 새로운 리스트 추가
     
+    private func countForTaskList(_ list: TaskList) -> Int {
+        let allTodos = userLists.flatMap { $0.todos ?? [] }  // ✅ 모든 할 일 가져오기
+        
+        switch list {
+        case .today:
+            return allTodos.filter { Calendar.current.isDateInToday($0.date ?? Date()) && !$0.isCompleted }.count
+        case .future:
+            return allTodos.filter { ($0.date ?? Date()) > Date() && !$0.isCompleted }.count
+        case .full:
+            return allTodos.filter { !$0.isCompleted }.count
+        case .complete:
+            return allTodos.filter { $0.isCompleted }.count
+        }
+    }
     
     private func deleteList(at offsets: IndexSet) {
         for index in offsets {
@@ -200,6 +213,7 @@ struct ContentView: View {
             .listRowBackground(Color.white) // 리스트 배경을 흰색으로 유지
         }
     }
+    
 }
 
 struct SearchBar: View {
