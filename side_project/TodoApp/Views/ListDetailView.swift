@@ -23,14 +23,13 @@ struct ListDetailView: View {
         "purple": .purple,
         "brown": .brown
     ]
-    @State private var editableTitle: String // ✅ 수정 가능한 제목
+    @State private var editableTitle: String
     
     init(title: String) {
         self.title = title
-        _editableTitle = State(initialValue: title) // ✅ editableTitle 초기화
+        _editableTitle = State(initialValue: title)
     }
     
-    // ✅ title을 이용하여 해당 리스트의 todos를 가져오기
     private var todos: [TodoItem] {
         let items = userLists.first(where: { $0.name == title })?.todos ?? []
         let filteredItems = showCompletedItems ? items : items.filter { !$0.isCompleted }
@@ -43,7 +42,7 @@ struct ListDetailView: View {
         return .blue
     }
     @State private var selectedColorString: String = "blue"
-    @State private var selectedSortOption: SortOption = .manual  // ✅ 정렬 옵션 추가
+    @State private var selectedSortOption: SortOption = .manual
     
     var body: some View {
         VStack(alignment: .leading) {

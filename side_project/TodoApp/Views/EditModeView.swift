@@ -23,10 +23,13 @@ struct EditModeView: View {
     @Binding var futureSelected: Bool
     @Binding var fullSelected: Bool
     @Binding var completeSelected: Bool
-    //    let columns = [GridItem(.flexible()), GridItem(.flexible())]
+    
+    @State private var showingListInfo = false
+    @State private var selectedColorString = ""
+    @State private var editableTitle = ""
     
     let iconSize: CGFloat = 30
-    let checkSize: CGFloat = 25
+    let checkSize: CGFloat = 23
     
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
     let colorMap: [String: Color] = [
@@ -57,8 +60,8 @@ struct EditModeView: View {
                             .padding(.vertical, 3)
                     }
                     .listStyle(.plain)
-                    .background(.red)
-                    //.background(Color(UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1.0)))
+                    //.background(.red)
+                    .frame(maxHeight: 270)
                     .cornerRadius(12)
                     
                     HStack {
@@ -91,22 +94,31 @@ struct EditModeView: View {
             
             
         }
+        .sheet(isPresented: $showingListInfo) {
+            ListInfoView(
+                selectedColorString: $selectedColorString,
+                listName: $editableTitle
+            )
+        }
     }
     private func deleteSingleList(_ list: UserList) {
         if let index = userLists.firstIndex(of: list) {
-            modelContext.delete(userLists[index]) // ✅ 모델 컨텍스트에서 삭제
+            modelContext.delete(userLists[index])
         }
     }
-
+    
     private func editRow(title: String, count: Int, iconColor: Color, list: UserList) -> some View {
         HStack {
             Button(action: {
-                deleteSingleList(list) // ✅ 단일 항목 삭제 실행
+                deleteSingleList(list)
             }) {
                 Image(systemName: "minus.circle.fill")
                     .foregroundColor(.red)
                     .font(.system(size: checkSize))
             }
+            .buttonStyle(PlainButtonStyle()) // 버튼만 클릭되도록 스타일 적용
+            .contentShape(Rectangle()) // 버튼 클릭 영역을 정확하게 지정
+            //gpt 사용
             
             ZStack {
                 Image(systemName: "list.bullet.circle.fill")
@@ -119,7 +131,15 @@ struct EditModeView: View {
                 .foregroundColor(.black)
             
             Spacer()
-            
+            Button(action: {
+                selectedColorString = list.color
+                editableTitle = list.name
+                showingListInfo = true
+            }) {
+                Image(systemName: "info.circle")
+                    .foregroundColor(.blue)
+                    .font(.system(size: checkSize))
+            }
             
         }
         .listRowBackground(Color.white)
@@ -131,7 +151,7 @@ struct EditModeView: View {
                     .foregroundColor(.blue)
                     .font(.system(size: checkSize))
                     .onTapGesture {
-                        isSelected.wrappedValue.toggle() // ✅ 개별 상태 변경
+                        isSelected.wrappedValue.toggle()
                     }
                 
                 icon
