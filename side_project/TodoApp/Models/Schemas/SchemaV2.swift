@@ -1,9 +1,4 @@
-//
-//  SchemaV2.swift
-//  TodoApp
-//
-//  Created by Jungman Bae on 1/21/25.
-//
+
 
 import Foundation
 import SwiftData

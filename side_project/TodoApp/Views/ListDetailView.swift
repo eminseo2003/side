@@ -12,6 +12,10 @@ struct ListDetailView: View {
     @State private var showingListInfo = false
     @State private var showingSortOptions = false
     @State private var showCompletedItems = false
+    @State private var todoEditMode = false
+    @State private var showingTodoInfo = false
+    
+    let checkSize: CGFloat = 23
     
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
     let colorMap: [String: Color] = [
@@ -120,7 +124,19 @@ struct ListDetailView: View {
                                 
                             }
                             .padding(.leading, 8)
-                            
+                            .onTapGesture {
+                                todoEditMode = true
+                            }
+                            Spacer()
+                            if todoEditMode {
+                                Button(action: {
+                                    showingTodoInfo = true
+                                }) {
+                                    Image(systemName: "info.circle")
+                                        .foregroundColor(.blue)
+                                        .font(.system(size: checkSize))
+                                }
+                            }
                             
                             
                             
@@ -213,6 +229,13 @@ struct ListDetailView: View {
                 }
                 
             }
+            if todoEditMode {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("완료") {
+                        todoEditMode = false
+                    }
+                }
+            }
             
             
         }
@@ -226,6 +249,9 @@ struct ListDetailView: View {
                 listName: $editableTitle
             )
         }
+//        .sheet(isPresented: $showingTodoInfo) {
+//            //TodoInfoView(todo: $selectedtodo)
+//        }
         .onAppear {
             selectedColorString = userLists.first(where: { $0.name == title })?.color ?? "blue"
         }

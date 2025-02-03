@@ -5,6 +5,7 @@ struct MainView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var userLists: [UserList]
     @State private var newListName: String = ""
+    @Query private var allTodos: [TodoItem]
     
     @State private var searchText = ""
     @State private var priorityFilter: Priority? = nil
@@ -29,7 +30,17 @@ struct MainView: View {
         "purple": .purple,
         "brown": .brown
     ]
-    
+    var filteredTodos: [TodoItem] {
+        if searchText.isEmpty {
+            return []
+        } else {
+            return allTodos.filter { todo in
+                todo.title.localizedCaseInsensitiveContains(searchText) ||
+                todo.memo.localizedCaseInsensitiveContains(searchText)
+                //localizedCaseInsensitiveContains : 대소문자를 구분하지 않고 특정 문자열을 포함하는지 검사하는 메서드
+            }
+        }
+    }
     var body: some View {
         NavigationStack {
             ZStack {
@@ -40,52 +51,76 @@ struct MainView: View {
                     
                     
                     SearchBar(text: $searchText)
-                    
-                    Spacer()
-                    
-                    LazyVGrid(columns: columns, spacing: 15) {
-                        
-                        if todaySelected {
-                            listButton(title: "오늘", list: .today, icon: TodayIcon(iconSize: iconSize))
-                        }
-                        if futureSelected {
-                            listButton(title: "예정", list: .future, icon: Image(systemName: "calendar.circle.fill").foregroundColor(.red))
-                        }
-                        if fullSelected {
-                            listButton(title: "전체", list: .full, icon: Image(systemName: "tray.circle.fill").foregroundColor(.black))
-
-                        }
-                        if completeSelected {
-                            listButton(title: "완료됨", list: .complete, icon: Image(systemName: "checkmark.circle.fill").foregroundColor(.black.opacity(0.6)))
-
-                        }
-                        
-                    }
-                    Spacer()
-                    HStack {
-                        Text("나의 목록")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        Spacer()
-                    }
-                    VStack {
+                    if !searchText.isEmpty {
                         List {
-                            ForEach(userLists, id: \.self) { list in
-                                listRow(
-                                    title: list.name,
-                                    count: list.todos?.filter { !$0.isCompleted }.count ?? 0,
-                                    iconColor: colorMap[list.color] ?? .blue
-                                )
+                            ForEach(filteredTodos, id: \.id) { todo in
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        Text(todo.title)
+                                            .font(.headline)
+                                            .foregroundColor(.black)
+                                        if !todo.memo.isEmpty {
+                                            Text(todo.memo)
+                                                .font(.subheadline)
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
+                                    Spacer()
+                                }
+                                .padding(5)
                             }
-                            .onDelete(perform: deleteList)
                         }
                         .listStyle(.plain)
-                        .background(Color(UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1.0)))
                         .cornerRadius(12)
+                    } else {
+                        Spacer()
                         
-                        
+                        LazyVGrid(columns: columns, spacing: 15) {
+                            
+                            if todaySelected {
+                                listButton(title: "오늘", list: .today, icon: TodayIcon(iconSize: iconSize))
+                            }
+                            if futureSelected {
+                                listButton(title: "예정", list: .future, icon: Image(systemName: "calendar.circle.fill").foregroundColor(.red))
+                            }
+                            if fullSelected {
+                                listButton(title: "전체", list: .full, icon: Image(systemName: "tray.circle.fill").foregroundColor(.black))
+                                
+                            }
+                            if completeSelected {
+                                listButton(title: "완료됨", list: .complete, icon: Image(systemName: "checkmark.circle.fill").foregroundColor(.black.opacity(0.6)))
+                                
+                            }
+                            
+                        }
+                        Spacer()
+                        HStack {
+                            Text("나의 목록")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            Spacer()
+                        }
+                        VStack {
+                            List {
+                                ForEach(userLists, id: \.self) { list in
+                                    listRow(
+                                        title: list.name,
+                                        count: list.todos?.filter { !$0.isCompleted }.count ?? 0,
+                                        iconColor: colorMap[list.color] ?? .blue
+                                    )
+                                }
+                                .onDelete(perform: deleteList)
+                            }
+                            .listStyle(.plain)
+                            .background(Color(UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1.0)))
+                            .cornerRadius(12)
+                            
+                            
+                        }
+                        Spacer()
                     }
-                    Spacer()
+                    
+                    
                     
                     
                 }
