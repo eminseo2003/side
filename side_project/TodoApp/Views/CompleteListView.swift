@@ -8,6 +8,7 @@ struct CompleteListView: View {
     
     @State private var showingAddAlarm = false
     @State private var showingSortOptions = false
+    @State private var showingDeleteAlert = false
     
     var todos: [TodoItem] {
         let items = userLists.flatMap { $0.todos ?? [] }
@@ -19,7 +20,7 @@ struct CompleteListView: View {
     let title: String = "완료됨"
     
     @State private var selectedSortOption: SortOption = .manual
-
+    
     var body: some View {
         VStack(alignment: .leading) {
             
@@ -29,6 +30,27 @@ struct CompleteListView: View {
                     .fontWeight(.bold)
                     .foregroundColor(listColor)
                 
+            }
+            HStack {
+                Text("\(todos.count)개 완료됨 ")
+                    .foregroundColor(.gray)
+                Button(action: {
+                    showingDeleteAlert = true
+                }) {
+                    Text("지우기")
+                        .foregroundColor(.blue)
+                        .fontWeight(.bold)
+                }
+                .alert(isPresented: $showingDeleteAlert) {
+                    Alert(
+                        title: Text("완료된 모든 항목 삭제"),
+                        message: Text("모든 완료된 미리 알림을 삭제하시겠습니까?"),
+                        primaryButton: .destructive(Text("삭제")) {
+                            deleteAllCompletedTodos()
+                        },
+                        secondaryButton: .cancel(Text("취소"))
+                    )
+                }
             }
             
             List {
@@ -101,29 +123,16 @@ struct CompleteListView: View {
                             
                             
                         }
-                        //.padding(.bottom, -5)
                         
                         
                     }
                 }
+                .onDelete(perform: deleteTodo)
             }
             .listStyle(.plain)
             .padding(.leading, -10)
             
-            HStack {
-                Button(action: { showingAddAlarm = true }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("새로운 미리 알림")
-                            .fontWeight(.bold)
-                            .font(.headline)
-                    }
-                    .foregroundColor(listColor)
-                }
-                Spacer()
-                
-            }
-            .padding(.vertical)
+            
         }
         .toolbar {
             // 취소 버튼: 현재 화면 닫기
@@ -141,28 +150,6 @@ struct CompleteListView: View {
                     }) {
                         Label("미리 알림 선택", systemImage: "checkmark.circle")
                     }
-                    
-                    Menu {
-                        ForEach(SortOption.allCases, id: \.self) { option in
-                            Button(action: {
-                                selectedSortOption = option
-                            }) {
-                                Label(option.rawValue, systemImage: selectedSortOption == option ? "checkmark" : "")
-                            }
-                        }
-                    } label: {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Label("다음으로 정렬", systemImage: "arrow.up.arrow.down")
-                            Text(selectedSortOption.rawValue)
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                            
-                        }
-                        
-                    }
-                    
-                    
-                    
                     Button(action: {
                         // 프린트 기능
                     }) {
@@ -185,6 +172,18 @@ struct CompleteListView: View {
         }
         
         
+    }
+    private func deleteTodo(at offsets: IndexSet) {
+        for index in offsets {
+            let todoToDelete = todos[index]
+            modelContext.delete(todoToDelete)
+        }
+    }
+    
+    private func deleteAllCompletedTodos() {
+        userLists.forEach { list in
+            list.todos?.removeAll { $0.isCompleted }
+        }
     }
     private func toggleCompletion(for todo: TodoItem) {
         if let index = todos.firstIndex(where: { $0.id == todo.id }) {
