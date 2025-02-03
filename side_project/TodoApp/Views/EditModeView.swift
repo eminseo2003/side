@@ -44,60 +44,110 @@ struct EditModeView: View {
             ZStack {
                 Color(UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1.0))
                     .edgesIgnoringSafeArea(.all)
-                Section{
+                
+                VStack {
+                    List {
+                        checkBoxRow(title: "오늘", list: .today, icon: TodayIcon(iconSize: iconSize), isSelected: $todaySelected)
+                            .padding(.vertical, 3)
+                        checkBoxRow(title: "예정", list: .future, icon: Image(systemName: "calendar.circle.fill").foregroundColor(.red), isSelected: $futureSelected)
+                            .padding(.vertical, 3)
+                        checkBoxRow(title: "전체", list: .full, icon: Image(systemName: "tray.circle.fill").foregroundColor(.black), isSelected: $fullSelected)
+                            .padding(.vertical, 3)
+                        checkBoxRow(title: "완료됨", list: .complete, icon: Image(systemName: "checkmark.circle.fill").foregroundColor(.black.opacity(0.6)), isSelected: $completeSelected)
+                            .padding(.vertical, 3)
+                    }
+                    .listStyle(.plain)
+                    .background(.red)
+                    //.background(Color(UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1.0)))
+                    .cornerRadius(12)
+                    
+                    HStack {
+                        Text("나의 목록")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        Spacer()
+                    }
                     VStack {
                         List {
-                            Group {
-                                checkBoxRow(title: "오늘", list: .today, icon: TodayIcon(iconSize: iconSize), isSelected: $todaySelected)
-                                checkBoxRow(title: "예정", list: .future, icon: Image(systemName: "calendar.circle.fill").foregroundColor(.red), isSelected: $futureSelected)
-                                checkBoxRow(title: "전체", list: .full, icon: Image(systemName: "tray.circle.fill").foregroundColor(.black), isSelected: $fullSelected)
-                                checkBoxRow(title: "완료됨", list: .complete, icon: Image(systemName: "checkmark.circle.fill").foregroundColor(.black.opacity(0.6)), isSelected: $completeSelected)
+                            ForEach(userLists, id: \.self) { list in
+                                editRow(
+                                    title: list.name,
+                                    count: list.todos?.filter { !$0.isCompleted }.count ?? 0,
+                                    iconColor: colorMap[list.color] ?? .blue,
+                                    list: list
+                                )
                             }
-                            //                        .onMove { indices, newOffset in
-                            //                            taskLists.move(fromOffsets: indices, toOffset: newOffset)
-                            //                        }
-                            .padding(.vertical, 3)
-                            
                         }
                         .listStyle(.plain)
-                        .environment(\.editMode, .constant(.active))
-                        .padding(.vertical, 3)
+                        .background(Color(UIColor(red: 242/255, green: 242/255, blue: 247/255, alpha: 1.0)))
+                        .cornerRadius(12)
+                        
+                        
                     }
-                }
-                Spacer()
-                HStack {
-                    Text("나의 목록")
-                        .font(.title2)
-                        .fontWeight(.bold)
                     Spacer()
                 }
-                Section{
-                    Text("나의 목록")
-                }
+                
             }
             
             
         }
     }
-    private func checkBoxRow(title: String, list: TaskList, icon: some View, isSelected: Binding<Bool>) -> some View {
+    private func deleteSingleList(_ list: UserList) {
+        if let index = userLists.firstIndex(of: list) {
+            modelContext.delete(userLists[index]) // ✅ 모델 컨텍스트에서 삭제
+        }
+    }
+
+    private func editRow(title: String, count: Int, iconColor: Color, list: UserList) -> some View {
         HStack {
-            Image(systemName: isSelected.wrappedValue ? "checkmark.circle.fill" : "circle")
-                .foregroundColor(.blue)
-                .font(.system(size: checkSize))
-                .onTapGesture {
-                    isSelected.wrappedValue.toggle() // ✅ 개별 상태 변경
-                }
+            Button(action: {
+                deleteSingleList(list) // ✅ 단일 항목 삭제 실행
+            }) {
+                Image(systemName: "minus.circle.fill")
+                    .foregroundColor(.red)
+                    .font(.system(size: checkSize))
+            }
             
-            icon
-                .font(.system(size: iconSize))
+            ZStack {
+                Image(systemName: "list.bullet.circle.fill")
+                    .foregroundColor(iconColor)
+                    .font(.system(size: iconSize, weight: .bold))
+            }
             
             Text(title)
+                .font(.system(size: 18))
                 .foregroundColor(.black)
-                .font(.body)
             
             Spacer()
             
+            
         }
+        .listRowBackground(Color.white)
+    }
+    private func checkBoxRow(title: String, list: TaskList, icon: some View, isSelected: Binding<Bool>) -> some View {
+        VStack {
+            HStack {
+                Image(systemName: isSelected.wrappedValue ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(.blue)
+                    .font(.system(size: checkSize))
+                    .onTapGesture {
+                        isSelected.wrappedValue.toggle() // ✅ 개별 상태 변경
+                    }
+                
+                icon
+                    .font(.system(size: iconSize))
+                
+                Text(title)
+                    .foregroundColor(.black)
+                    .font(.body)
+                
+                Spacer()
+                
+            }
+        }
+        .background(Color(.white))
+        .cornerRadius(12)
+        
         
     }
 }
