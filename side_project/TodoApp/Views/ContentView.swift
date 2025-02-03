@@ -14,6 +14,11 @@ struct ContentView: View {
     @State private var priorityFilter: Priority? = nil
     @State private var selectedList: TaskList? = nil
     
+    @State private var todaySelected = true
+    @State private var futureSelected = true
+    @State private var fullSelected = true
+    @State private var completeSelected = true
+    
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
     
     let iconSize: CGFloat = 30
@@ -51,9 +56,19 @@ struct ContentView: View {
                     Spacer()
                     
                     if editMode == .active {
-                        EditModeView()
+                        EditModeView(
+                            todaySelected: $todaySelected,
+                            futureSelected: $futureSelected,
+                            fullSelected: $fullSelected,
+                            completeSelected: $completeSelected
+                        )
                     } else {
-                        MainView()
+                        MainView(
+                            todaySelected: $todaySelected,
+                            futureSelected: $futureSelected,
+                            fullSelected: $fullSelected,
+                            completeSelected: $completeSelected
+                        )
                     }
                     
                     

@@ -6,12 +6,14 @@ struct MainView: View {
     @Query private var userLists: [UserList]
     @State private var newListName: String = ""
     
-    // "Add Todo" 모달을 표시할지 여부를 상태로 관리
-    // 검색창 텍스트를 상태로 관리
     @State private var searchText = ""
-    // 우선순위 필터를 상태로 관리 (초기값은 nil로 설정하여 전체 보기)
     @State private var priorityFilter: Priority? = nil
     @State private var selectedList: TaskList? = nil
+    
+    @Binding var todaySelected: Bool
+    @Binding var futureSelected: Bool
+    @Binding var fullSelected: Bool
+    @Binding var completeSelected: Bool
     
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
     
@@ -43,10 +45,21 @@ struct MainView: View {
                     
                     LazyVGrid(columns: columns, spacing: 15) {
                         
-                        listButton(title: "오늘", list: .today, icon: TodayIcon(iconSize: iconSize))
-                        listButton(title: "예정", list: .future, icon: Image(systemName: "calendar.circle.fill").foregroundColor(.red))
-                        listButton(title: "전체", list: .full, icon: Image(systemName: "tray.circle.fill").foregroundColor(.black))
-                        listButton(title: "완료됨", list: .complete, icon: Image(systemName: "checkmark.circle.fill").foregroundColor(.black.opacity(0.6)))
+                        if todaySelected {
+                            listButton(title: "오늘", list: .today, icon: TodayIcon(iconSize: iconSize))
+                        }
+                        if futureSelected {
+                            listButton(title: "예정", list: .future, icon: Image(systemName: "calendar.circle.fill").foregroundColor(.red))
+                        }
+                        if fullSelected {
+                            listButton(title: "전체", list: .full, icon: Image(systemName: "tray.circle.fill").foregroundColor(.black))
+
+                        }
+                        if completeSelected {
+                            listButton(title: "완료됨", list: .complete, icon: Image(systemName: "checkmark.circle.fill").foregroundColor(.black.opacity(0.6)))
+
+                        }
+                        
                     }
                     Spacer()
                     HStack {
@@ -195,24 +208,7 @@ struct SearchBar: View {
         
     }
 }
-struct TodayIcon: View {
-    let iconSize: CGFloat
-    
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color.blue)
-                .frame(width: iconSize, height: iconSize)
-            
-            VStack {
-                Text(Date().formatted(.dateTime.day()))
-                    .font(.system(size: iconSize/2, weight: .bold))
-                    .foregroundColor(.white)
-                
-            }
-        }
-    }
-}
+
 //#Preview {
 //    ContentView()
 //        .modelContainer(PreviewContainer.shared.container)
