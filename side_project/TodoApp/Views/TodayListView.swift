@@ -216,6 +216,11 @@ struct TodayListView: View {
                             .font(.subheadline)
                             .foregroundColor(.gray)
                         HStack(spacing: 0) {
+                            if let userlist = todo.userlist {
+                                Text("\(userlist.name) ")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
                             if let date = todo.date {
                                 Text(formattedDate(date))
                                     .font(.subheadline)
