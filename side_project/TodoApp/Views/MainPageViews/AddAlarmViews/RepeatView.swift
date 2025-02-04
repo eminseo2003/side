@@ -25,8 +25,7 @@ struct RepeatView: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         daterepeat = frequency
-                        daterepeatEnabled = frequency != .none
-                        //.none이 아니면 true 설정
+                        daterepeatEnabled = frequency != .none //.none이 아니면 true 설정
                         dismiss()
                     }
                 }

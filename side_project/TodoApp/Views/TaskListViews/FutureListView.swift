@@ -131,7 +131,6 @@ struct FutureListView: View {
             .padding(.vertical)
         }
         .toolbar {
-            // 취소 버튼: 현재 화면 닫기
             ToolbarItem(placement: .navigationBarLeading) {
                 Button("") {
                     dismiss()
@@ -163,7 +162,7 @@ struct FutureListView: View {
                     
                     
                 } label: {
-                    Image(systemName: "ellipsis.circle") // 상단 우측 '더보기' 아이콘
+                    Image(systemName: "ellipsis.circle")
                         .imageScale(.large)
                 }
                 
@@ -248,14 +247,7 @@ struct FutureListView: View {
                         
                     }
                     .padding(.leading, 8)
-                    
-                    
-                    
-                    
                 }
-                //.padding(.bottom, -5)
-                
-                
             }
         }
     }

@@ -2,11 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct DetailView: View {
-    // 나를 호출한 뷰에서 닫기 기능을 동작 시키는 환경 변수(클로저)
-    // 현재 화면을 닫기 위한 dismiss 환경 변수
     @Environment(\.dismiss) private var dismiss
-    
-    // SwiftData에서 카테고리를 쿼리
     
     @Binding var priority: Priority
     @Binding var dateEnabled: Bool
@@ -152,6 +148,7 @@ struct DetailView: View {
                                 .padding(.leading, 10)
                         }
                     ) {
+                        //gpt 사용 - 열거형의 모든 케이스를 배열(Array) 형태로 가져오는 기능
                         ForEach(Priority.allCases, id: \.self) { priority in
                             Text(priority.title).tag(priority)
                         }

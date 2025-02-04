@@ -1,45 +1,40 @@
 import SwiftUI
 import SwiftData
 
-struct TodayListView: View {
+struct FullListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query private var userLists: [UserList]
     
     @State private var showingAddAlarm = false
     @State private var showingSortOptions = false
-    @State private var groupingbytime = false
+    @State private var showCompletedItems = false
+    
+    let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
+    let colorMap: [String: Color] = [
+        "red": .red,
+        "orange": .orange,
+        "yellow": .yellow,
+        "green": .green,
+        "blue": .blue,
+        "purple": .purple,
+        "brown": .brown
+    ]
     
     var todos: [TodoItem] {
         let items = userLists.flatMap { $0.todos ?? [] }
-            .filter { Calendar.current.isDateInToday($0.date ?? Date()) && !$0.isCompleted }
-        return sortedTodos(items)
+        let filteredItems = showCompletedItems ? items : items.filter { !$0.isCompleted }
+        return sortedTodos(filteredItems)
     }
-    let listColor: Color = .blue
-    let title: String = "오늘"
+    let listColor: Color = .black
+    let title: String = "전체"
     
     @State private var selectedSortOption: SortOption = .manual
     
-    var morningTodos: [TodoItem] {
-        todos.filter { getHour(from: $0.time) >= 0 && getHour(from: $0.time) < 12 }
-    }
-
-    var afternoonTodos: [TodoItem] {
-        todos.filter { getHour(from: $0.time) >= 12 && getHour(from: $0.time) < 18 }
-    }
-
-    var nightTodos: [TodoItem] {
-        todos.filter { getHour(from: $0.time) >= 18 }
-    }
-    var unscheduledTodos: [TodoItem] {
-        todos.filter { getHour(from: $0.time) == -1 }
-    }
-
-
-    // 시간을 추출하는 함수 추가
-    private func getHour(from date: Date?) -> Int {
-        guard let date = date else { return -1  }
-        return Calendar.current.component(.hour, from: date)
+    var groupedTodos: [UserList: [TodoItem]] {
+        Dictionary(grouping: todos) { todo in
+            todo.userlist ?? UserList(name: "미정")
+        }
     }
     
     var body: some View {
@@ -52,63 +47,23 @@ struct TodayListView: View {
                     .foregroundColor(listColor)
                 
             }
-            if !groupingbytime {
-                List {
-                    todoListView(todos)
+            List {
+                ForEach(groupedTodos.keys.sorted(by: { $0.name < $1.name }), id: \.self) { userlist in
+                    if let todosForUser = groupedTodos[userlist] {
+                        Section(header: Text(userlist.name)
+                            .font(.title3)
+                            .padding(.leading, -10)
+                            .foregroundColor(colorMap[userlist.color] ?? .black)
+                        ) {
+                            todoListView(todosForUser, color: colorMap[userlist.color] ?? .black)
+                                .frame(maxHeight: .infinity)
+                        }
+                    }
                 }
-                .listStyle(.plain)
-                .padding(.leading, -10)
-            } else {
-                List {
-                    
-                    Section(header: Text("오전")
-                        .font(.headline)
-                        .foregroundColor(morningTodos.isEmpty ? .gray.opacity(0.5) : .gray)
-                        .padding(.vertical, 0)
-                    ) {
-                        if !morningTodos.isEmpty {
-                            todoListView(morningTodos)
-                        } else {
-                            EmptyView().frame(height: 10)
-                        }
-                    }
-                    Section(header: Text("오후")
-                        .font(.headline)
-                        .foregroundColor(afternoonTodos.isEmpty ? .gray.opacity(0.5) : .gray)
-                        .padding(.vertical, 0)
-                    ) {
-                        if !afternoonTodos.isEmpty {
-                            todoListView(afternoonTodos)
-                        } else {
-                            EmptyView().frame(height: 10)
-                        }
-                    }
-                    Section(header: Text("오늘 밤")
-                        .font(.headline)
-                        .foregroundColor(nightTodos.isEmpty ? .gray.opacity(0.5) : .gray)
-                        .padding(.vertical, 0)
-                    ) {
-                        if !nightTodos.isEmpty {
-                            todoListView(nightTodos)
-                        }
-                    }
-                    Section(header: Text("시간 미정")
-                        .font(.headline)
-                        .foregroundColor(unscheduledTodos.isEmpty ? .gray.opacity(0.5) : .gray)
-                        .padding(.vertical, 0)
-                    ) {
-                        if !unscheduledTodos.isEmpty {
-                            todoListView(unscheduledTodos)
-                        }
-                    }
-
-                    
-                    
-                }
-                .listStyle(.plain)
-                .padding(.leading, -10)
             }
-            
+            .listStyle(.plain)
+            .padding(.leading, -10)
+            .frame(maxHeight: .infinity)
             
             
             HStack {
@@ -127,7 +82,6 @@ struct TodayListView: View {
             .padding(.vertical)
         }
         .toolbar {
-            // 취소 버튼: 현재 화면 닫기
             ToolbarItem(placement: .navigationBarLeading) {
                 Button("") {
                     dismiss()
@@ -142,29 +96,11 @@ struct TodayListView: View {
                     }) {
                         Label("미리 알림 선택", systemImage: "checkmark.circle")
                     }
-                    Button(action: {
-                        groupingbytime.toggle()
-                    }) {
-                        Label("시간으로 그룹화", systemImage: groupingbytime ? "checkmark" : "rectangle.grid.1x2")
-                    }
                     
-                    Menu {
-                        ForEach(SortOption.allCases, id: \.self) { option in
-                            Button(action: {
-                                selectedSortOption = option
-                            }) {
-                                Label(option.rawValue, systemImage: selectedSortOption == option ? "checkmark" : "")
-                            }
-                        }
-                    } label: {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Label("다음으로 정렬", systemImage: "arrow.up.arrow.down")
-                            Text(selectedSortOption.rawValue)
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                            
-                        }
-                        
+                    Button(action: {
+                        showCompletedItems.toggle()
+                    }) {
+                        Label(showCompletedItems ? "완료된 항목 숨기기" : "완료된 항목 보기", systemImage: "eye")
                     }
                     
                     
@@ -177,7 +113,7 @@ struct TodayListView: View {
                     
                     
                 } label: {
-                    Image(systemName: "ellipsis.circle") // 상단 우측 '더보기' 아이콘
+                    Image(systemName: "ellipsis.circle")
                         .imageScale(.large)
                 }
                 
@@ -192,15 +128,14 @@ struct TodayListView: View {
         
         
     }
-    private func todoListView(_ todos: [TodoItem]) -> some View {
-        
+    private func todoListView(_ todos: [TodoItem], color: Color) -> some View {
         ForEach(todos) { todo in
             
             
             VStack(alignment: .leading) {
                 HStack(alignment: .top) {
                     Image(systemName: todo.isCompleted ? "circle.inset.filled" : "circle")
-                        .foregroundColor(todo.isCompleted ? listColor : .gray)
+                        .foregroundColor(todo.isCompleted ? color : .gray)
                         .onTapGesture {
                             toggleCompletion(for: todo)
                             
@@ -208,7 +143,7 @@ struct TodayListView: View {
                     
                     VStack(alignment: .leading) {
                         HStack {
-                            priorityText(todo.priority)
+                            priorityText(todo.priority, color: color)
                             titleText(todo)
                         }
                         
@@ -216,11 +151,6 @@ struct TodayListView: View {
                             .font(.subheadline)
                             .foregroundColor(.gray)
                         HStack(spacing: 0) {
-                            if let userlist = todo.userlist {
-                                Text("\(userlist.name) ")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            }
                             if let date = todo.date {
                                 Text(formattedDate(date))
                                     .font(.subheadline)
@@ -263,16 +193,10 @@ struct TodayListView: View {
                         
                     }
                     .padding(.leading, 8)
-                    
-                    
-                    
-                    
                 }
-                //.padding(.bottom, -5)
-                
-                
             }
         }
+        .frame(maxHeight: .infinity)
     }
     private func toggleCompletion(for todo: TodoItem) {
         if let index = todos.firstIndex(where: { $0.id == todo.id }) {
@@ -290,14 +214,14 @@ struct TodayListView: View {
         }
     }
     @ViewBuilder
-    private func priorityText(_ priority: Priority) -> some View {
+    private func priorityText(_ priority: Priority, color: Color) -> some View {
         switch priority {
         case .low:
-            Text("!").foregroundColor(listColor)
+            Text("!").foregroundColor(color)
         case .medium:
-            Text("!!").foregroundColor(listColor)
+            Text("!!").foregroundColor(color)
         case .high:
-            Text("!!!").foregroundColor(listColor)
+            Text("!!!").foregroundColor(color)
         default:
             EmptyView()
         }

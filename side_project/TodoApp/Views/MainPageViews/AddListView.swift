@@ -1,16 +1,14 @@
 import SwiftUI
 import SwiftData
 
-struct ListInfoView: View {
+struct AddListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    @Binding var selectedColorString: String
-    @Binding var listName: String
-    
     @Query private var userLists: [UserList]
+    @State private var newListName: String = ""
+    @State private var selectedColor: String = "blue"
     
-    @State private var originalListName: String
     let colors: [String] = ["red", "orange", "yellow", "green", "blue", "purple", "brown"]
     let colorMap: [String: Color] = [
         "red": .red,
@@ -21,11 +19,7 @@ struct ListInfoView: View {
         "purple": .purple,
         "brown": .brown
     ]
-    init(selectedColorString: Binding<String>, listName: Binding<String>) {
-        self._selectedColorString = selectedColorString
-        self._listName = listName
-        self._originalListName = State(initialValue: listName.wrappedValue) // ✅ 원래 이름 저장
-    }
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -34,24 +28,24 @@ struct ListInfoView: View {
                         ZStack {
                             Circle()
                                 .fill(Color.white)
-                                .shadow(color: colorMap[selectedColorString] ?? .blue, radius: 5)
+                                .shadow(color: colorMap[selectedColor] ?? .blue, radius: 5)
                                 .frame(width: 100, height: 100)
                             
                             Image(systemName: "list.bullet.circle.fill")
                                 .resizable()
                                 .frame(width: 100, height: 100)
-                                .foregroundColor(colorMap[selectedColorString] ?? .blue)
+                                .foregroundColor(colorMap[selectedColor] ?? .blue)
                         }
                         .padding()
                         
-                        TextField("목록 이름", text: $listName)
+                        TextField("목록 이름", text: $newListName)
                             .padding()
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(10)
-                            .foregroundColor(colorMap[selectedColorString] ?? .blue)
+                            .foregroundColor(colorMap[selectedColor] ?? .blue)
                             .font(.title2)
                             .fontWeight(.bold)
-                            .multilineTextAlignment(.center)
+                            .multilineTextAlignment(.center)//gpt 사용 : Text나 TextField 같은 여러 줄 텍스트의 정렬을 설정
                     }
                 }
                 
@@ -62,11 +56,11 @@ struct ListInfoView: View {
                         ForEach(colors, id: \.self) { color in
                             ZStack {
                                 Circle()
-                                    .stroke(Color.gray.opacity(0.5), lineWidth: selectedColorString == color ? 6 : 0)
+                                    .stroke(Color.gray.opacity(0.5), lineWidth: selectedColor == color ? 6 : 0)
                                     .frame(width: 50, height: 50)
                                 
                                 Circle()
-                                    .stroke(Color.white, lineWidth: selectedColorString == color ? 4 : 0)
+                                    .stroke(Color.white, lineWidth: selectedColor == color ? 4 : 0)
                                     .frame(width: 45, height: 45)
                                 
                                 Circle()
@@ -74,15 +68,17 @@ struct ListInfoView: View {
                                     .frame(width: 40, height: 40)
                             }
                             .onTapGesture {
-                                selectedColorString = color
+                                selectedColor = color
                             }
+                            
                         }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical)
                 }
+                
             }
-            .navigationTitle("목록 정보")
+            .navigationTitle("새로운 목록")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -92,20 +88,25 @@ struct ListInfoView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("완료") {
-                        editList()  // ✅ 기존 리스트의 색상 수정
+                        addList()
                         dismiss()
                     }
                 }
             }
+            
         }
+        
     }
-    
-    private func editList() {
-        if let userListIndex = userLists.firstIndex(where: { $0.name == originalListName }) {
-            userLists[userListIndex].color = selectedColorString
-            userLists[userListIndex].name = listName
-        } else {
-            print("해당 목록을 찾을 수 없습니다.")
+    private func addList() {
+        if !newListName.isEmpty {
+            let newUserList = UserList(name: newListName, color: selectedColor)
+            modelContext.insert(newUserList)
+            newListName = ""
         }
     }
 }
+
+//#Preview {
+//    AddTodoView()
+//        .modelContainer(PreviewContainer.shared.container)
+//}

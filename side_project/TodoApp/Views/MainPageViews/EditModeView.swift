@@ -3,7 +3,6 @@ import SwiftData
 
 struct EditModeView: View {
     @Environment(\.modelContext) private var modelContext
-    
     @Environment(\.dismiss) private var dismiss
     
     @Query private var userLists: [UserList]
@@ -11,12 +10,8 @@ struct EditModeView: View {
     
     @State private var taskLists: [TaskList] = [.today, .future, .full, .complete]
     
-    // "Add Todo" 모달을 표시할지 여부를 상태로 관리
     @State private var editMode: EditMode = .inactive
-    // 검색창 텍스트를 상태로 관리
-    @State private var searchText = ""
-    // 우선순위 필터를 상태로 관리 (초기값은 nil로 설정하여 전체 보기)
-    @State private var priorityFilter: Priority? = nil
+    
     @State private var selectedList: TaskList? = nil
     
     @Binding var todaySelected: Bool
@@ -151,7 +146,7 @@ struct EditModeView: View {
                     .foregroundColor(.blue)
                     .font(.system(size: checkSize))
                     .onTapGesture {
-                        isSelected.wrappedValue.toggle()
+                        isSelected.wrappedValue.toggle()//gpt 사용 : Binding<Bool> 타입의 isSelected에서 실제 값을 가져오거나 변경하는 역할
                     }
                 
                 icon
@@ -167,8 +162,6 @@ struct EditModeView: View {
         }
         .background(Color(.white))
         .cornerRadius(12)
-        
-        
     }
 }
 struct TodayIcon: View {

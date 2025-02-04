@@ -8,7 +8,6 @@ struct MainView: View {
     @Query private var allTodos: [TodoItem]
     
     @State private var searchText = ""
-    @State private var priorityFilter: Priority? = nil
     @State private var selectedList: TaskList? = nil
     
     @Binding var todaySelected: Bool
@@ -37,7 +36,6 @@ struct MainView: View {
             return allTodos.filter { todo in
                 todo.title.localizedCaseInsensitiveContains(searchText) ||
                 todo.memo.localizedCaseInsensitiveContains(searchText)
-                //localizedCaseInsensitiveContains : 대소문자를 구분하지 않고 특정 문자열을 포함하는지 검사하는 메서드
             }
         }
     }
@@ -180,6 +178,7 @@ struct MainView: View {
     }
     
     private func countForTaskList(_ list: TaskList) -> Int {
+        //gpt 사용 - 배열이나 옵셔널에서 중첩된 값들을 평탄화하면서 변환하는 역할
         let allTodos = userLists.flatMap { $0.todos ?? [] }
         
         switch list {
